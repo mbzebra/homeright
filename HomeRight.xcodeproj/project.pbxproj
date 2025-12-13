@@ -6,8 +6,27 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		0C95ED992EE4045B002D2AC5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0C95ED672EE3B850002D2AC5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0C95ED6E2EE3B850002D2AC5;
+			remoteInfo = HomeRight;
+		};
+		0C95EDAC2EE4047D002D2AC5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0C95ED672EE3B850002D2AC5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0C95ED6E2EE3B850002D2AC5;
+			remoteInfo = HomeRight;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		0C95ED6F2EE3B850002D2AC5 /* HomeRight.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HomeRight.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0C95ED952EE4045B002D2AC5 /* HomeRightTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HomeRightTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		0C95EDA62EE4047D002D2AC5 /* HomeRightUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HomeRightUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,10 +35,34 @@
 			path = HomeRight;
 			sourceTree = "<group>";
 		};
+		0C95ED962EE4045B002D2AC5 /* HomeRightTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = HomeRightTests;
+			sourceTree = "<group>";
+		};
+		0C95EDA72EE4047D002D2AC5 /* HomeRightUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = HomeRightUITests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		0C95ED6C2EE3B850002D2AC5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0C95ED922EE4045B002D2AC5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0C95EDA32EE4047D002D2AC5 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +76,8 @@
 			isa = PBXGroup;
 			children = (
 				0C95ED712EE3B850002D2AC5 /* HomeRight */,
+				0C95ED962EE4045B002D2AC5 /* HomeRightTests */,
+				0C95EDA72EE4047D002D2AC5 /* HomeRightUITests */,
 				0C95ED702EE3B850002D2AC5 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +86,8 @@
 			isa = PBXGroup;
 			children = (
 				0C95ED6F2EE3B850002D2AC5 /* HomeRight.app */,
+				0C95ED952EE4045B002D2AC5 /* HomeRightTests.xctest */,
+				0C95EDA62EE4047D002D2AC5 /* HomeRightUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -70,6 +117,52 @@
 			productReference = 0C95ED6F2EE3B850002D2AC5 /* HomeRight.app */;
 			productType = "com.apple.product-type.application";
 		};
+		0C95ED942EE4045B002D2AC5 /* HomeRightTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0C95ED9B2EE4045B002D2AC5 /* Build configuration list for PBXNativeTarget "HomeRightTests" */;
+			buildPhases = (
+				0C95ED912EE4045B002D2AC5 /* Sources */,
+				0C95ED922EE4045B002D2AC5 /* Frameworks */,
+				0C95ED932EE4045B002D2AC5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0C95ED9A2EE4045B002D2AC5 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				0C95ED962EE4045B002D2AC5 /* HomeRightTests */,
+			);
+			name = HomeRightTests;
+			packageProductDependencies = (
+			);
+			productName = HomeRightTests;
+			productReference = 0C95ED952EE4045B002D2AC5 /* HomeRightTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		0C95EDA52EE4047D002D2AC5 /* HomeRightUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0C95EDAE2EE4047D002D2AC5 /* Build configuration list for PBXNativeTarget "HomeRightUITests" */;
+			buildPhases = (
+				0C95EDA22EE4047D002D2AC5 /* Sources */,
+				0C95EDA32EE4047D002D2AC5 /* Frameworks */,
+				0C95EDA42EE4047D002D2AC5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0C95EDAD2EE4047D002D2AC5 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				0C95EDA72EE4047D002D2AC5 /* HomeRightUITests */,
+			);
+			name = HomeRightUITests;
+			packageProductDependencies = (
+			);
+			productName = HomeRightUITests;
+			productReference = 0C95EDA62EE4047D002D2AC5 /* HomeRightUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -82,6 +175,14 @@
 				TargetAttributes = {
 					0C95ED6E2EE3B850002D2AC5 = {
 						CreatedOnToolsVersion = 26.1.1;
+					};
+					0C95ED942EE4045B002D2AC5 = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = 0C95ED6E2EE3B850002D2AC5;
+					};
+					0C95EDA52EE4047D002D2AC5 = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = 0C95ED6E2EE3B850002D2AC5;
 					};
 				};
 			};
@@ -100,12 +201,28 @@
 			projectRoot = "";
 			targets = (
 				0C95ED6E2EE3B850002D2AC5 /* HomeRight */,
+				0C95ED942EE4045B002D2AC5 /* HomeRightTests */,
+				0C95EDA52EE4047D002D2AC5 /* HomeRightUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		0C95ED6D2EE3B850002D2AC5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0C95ED932EE4045B002D2AC5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0C95EDA42EE4047D002D2AC5 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +239,34 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		0C95ED912EE4045B002D2AC5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0C95EDA22EE4047D002D2AC5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		0C95ED9A2EE4045B002D2AC5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0C95ED6E2EE3B850002D2AC5 /* HomeRight */;
+			targetProxy = 0C95ED992EE4045B002D2AC5 /* PBXContainerItemProxy */;
+		};
+		0C95EDAD2EE4047D002D2AC5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0C95ED6E2EE3B850002D2AC5 /* HomeRight */;
+			targetProxy = 0C95EDAC2EE4047D002D2AC5 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		0C95ED782EE3B852002D2AC5 /* Debug */ = {
@@ -310,6 +454,88 @@
 			};
 			name = Release;
 		};
+		0C95ED9C2EE4045B002D2AC5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UX2DZ2S4X4;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sprinklesai.HomeRightTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HomeRight.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/HomeRight";
+			};
+			name = Debug;
+		};
+		0C95ED9D2EE4045B002D2AC5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UX2DZ2S4X4;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sprinklesai.HomeRightTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HomeRight.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/HomeRight";
+			};
+			name = Release;
+		};
+		0C95EDAF2EE4047D002D2AC5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UX2DZ2S4X4;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sprinklesai.HomeRightUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = HomeRight;
+			};
+			name = Debug;
+		};
+		0C95EDB02EE4047D002D2AC5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UX2DZ2S4X4;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sprinklesai.HomeRightUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = HomeRight;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -327,6 +553,24 @@
 			buildConfigurations = (
 				0C95ED7B2EE3B852002D2AC5 /* Debug */,
 				0C95ED7C2EE3B852002D2AC5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0C95ED9B2EE4045B002D2AC5 /* Build configuration list for PBXNativeTarget "HomeRightTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0C95ED9C2EE4045B002D2AC5 /* Debug */,
+				0C95ED9D2EE4045B002D2AC5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0C95EDAE2EE4047D002D2AC5 /* Build configuration list for PBXNativeTarget "HomeRightUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0C95EDAF2EE4047D002D2AC5 /* Debug */,
+				0C95EDB02EE4047D002D2AC5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

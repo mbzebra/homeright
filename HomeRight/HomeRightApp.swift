@@ -7,11 +7,15 @@
 
 import SwiftUI
 
-@main
-struct HomeRightApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
+struct HomeRightApp: View {
+    @StateObject private var taskStore = TaskStore()
+
+    var body: some View {
+        TaskListView()
+            .environmentObject(taskStore)
     }
+}
+
+#Preview {
+    HomeRightApp()
 }

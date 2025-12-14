@@ -1,7 +1,7 @@
 import Foundation
 
-struct Task: Identifiable, Hashable {
-    let id = UUID()
+struct Task: Identifiable, Hashable, Codable {
+    let id: UUID
     let title: String
     let detail: String
     let schedule: Schedule
@@ -30,6 +30,7 @@ enum Schedule: String, CaseIterable, Codable, Hashable {
     case summer = "Summer"
     case fall = "Fall"
     case winter = "Winter"
+    case custom = "Custom"
 
     var displayName: String { rawValue }
 }

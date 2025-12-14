@@ -64,6 +64,8 @@ actor NotificationManager {
             dateComponents.month = 3
             dateComponents.day = 1
             dateComponents.hour = 9
+        case .custom:
+            dateComponents.day = nil
         }
 
         return UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)

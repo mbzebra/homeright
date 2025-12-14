@@ -12,6 +12,10 @@ struct TaskListView: View {
     @FocusState private var isNoteFocused: Bool
     private let currentMonth = Calendar.current.component(.month, from: Date())
     @State private var expandedMonths: Set<Int> = []
+    @State private var showingNewTaskSheet = false
+    @State private var newTaskMonth: Int = 1
+    @State private var newTaskTitle: String = ""
+    @State private var newTaskDetail: String = ""
 
     var body: some View {
         NavigationStack {
@@ -21,7 +25,12 @@ struct TaskListView: View {
                     let tasks = taskStore.tasks(in: month)
                     if !tasks.isEmpty {
                         let allComplete = tasks.allSatisfy { taskStore.progress(for: $0, month: month).status == .complete }
-                        Section(header: sectionHeader(for: month, tasks: tasks, taskStore: taskStore)) {
+                        Section(header: sectionHeader(for: month, tasks: tasks, taskStore: taskStore, onAdd: {
+                            newTaskMonth = month
+                            newTaskTitle = ""
+                            newTaskDetail = ""
+                            showingNewTaskSheet = true
+                        })) {
                             if allComplete && !expandedMonths.contains(month) {
                                 Button {
                                     expandedMonths.insert(month)
@@ -96,6 +105,9 @@ struct TaskListView: View {
             }
         }
         .sheet(item: $editingTask, content: statusSheet)
+        .sheet(isPresented: $showingNewTaskSheet) {
+            newTaskSheet
+        }
         .safeAreaInset(edge: .top) {
             Color.clear.frame(height: 12)
         }
@@ -194,6 +206,8 @@ struct TaskListView: View {
             label = "Yearly"; color = .teal
         case .spring, .summer, .fall, .winter, .seasonal:
             label = "Seasonal"; color = .indigo
+        case .custom:
+            label = "Custom"; color = .gray
         }
 
         return AnyView(
@@ -274,6 +288,62 @@ struct TaskListView: View {
             }
         }
     }
+
+    private var newTaskSheet: some View {
+        NavigationStack {
+            Form {
+                Section("Month") {
+                    Text(monthName(from: newTaskMonth))
+                        .font(.subheadline.weight(.semibold))
+                }
+
+                Section("Task name") {
+                    TextField("Enter task name", text: $newTaskTitle)
+                        .textInputAutocapitalization(.sentences)
+                        .autocorrectionDisabled(true)
+                        .onChange(of: newTaskTitle) { newValue in
+                            if newValue.count > 100 {
+                                newTaskTitle = String(newValue.prefix(100))
+                            }
+                        }
+                    Text("\(newTaskTitle.count)/100")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Section("Details") {
+                    TextEditor(text: $newTaskDetail)
+                        .frame(minHeight: 120)
+                        .textInputAutocapitalization(.sentences)
+                        .autocorrectionDisabled(true)
+                        .onChange(of: newTaskDetail) { newValue in
+                            if newValue.count > 200 {
+                                newTaskDetail = String(newValue.prefix(200))
+                            }
+                        }
+                    Text("\(newTaskDetail.count)/200")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle("Add Task")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { showingNewTaskSheet = false }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        let title = newTaskTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+                        let detail = newTaskDetail.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !title.isEmpty else { return }
+                        taskStore.addCustomTask(title: title, detail: detail, month: newTaskMonth)
+                        showingNewTaskSheet = false
+                    }
+                    .disabled(newTaskTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+        }
+    }
 }
 
 // MARK: - Components
@@ -303,7 +373,7 @@ private struct MetricPill: View {
     }
 }
 
-private func sectionHeader(for month: Int, tasks: [Task], taskStore: TaskStore) -> some View {
+private func sectionHeader(for month: Int, tasks: [Task], taskStore: TaskStore, onAdd: @escaping () -> Void) -> some View {
     let formatter = DateFormatter()
     formatter.locale = Locale.current
     let monthName = formatter.monthSymbols[max(0, min(11, month - 1))]
@@ -317,30 +387,43 @@ private func sectionHeader(for month: Int, tasks: [Task], taskStore: TaskStore) 
     let badgeBackground = Color(.tertiarySystemFill)
 
     return VStack(alignment: .leading, spacing: 8) {
-        Text("\(monthName) Tasks")
-            .font(.title3.weight(.semibold))
-            .foregroundStyle(titleColor)
-            .padding(.top, 4)
-        HStack(spacing: 8) {
-            HStack(spacing: 6) {
-                Image(systemName: "checkmark")
-                    .font(.caption.bold())
-                Text("\(completed) completed of \(total)")
-                    .font(.caption.weight(.semibold))
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(badgeBackground)
-            .clipShape(Capsule())
-
-            if monthCost > 0 {
-                Text("Total: \(formattedCost(monthCost))")
-                    .font(.caption.weight(.semibold))
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("\(monthName) Tasks")
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(titleColor)
+                    .padding(.top, 4)
+                HStack(spacing: 8) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark")
+                            .font(.caption.bold())
+                        Text("\(completed) completed of \(total)")
+                            .font(.caption.weight(.semibold))
+                    }
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
                     .background(badgeBackground)
                     .clipShape(Capsule())
+
+                    if monthCost > 0 {
+                        Text("Total: \(formattedCost(monthCost))")
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(badgeBackground)
+                            .clipShape(Capsule())
+                    }
+                }
             }
+            Spacer()
+            Button(action: onAdd) {
+                Image(systemName: "plus.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(.blue)
+                    .padding(.top, 4)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Add task for \(monthName)")
         }
     }
 }

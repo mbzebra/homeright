@@ -37,6 +37,9 @@ actor NotificationManager {
         switch schedule {
         case .quarterly:
             return quarterlyTriggers()
+        case .custom:
+            // No auto-reminders for user-created tasks since schedule is user-defined
+            return []
         default:
             return [calendarTrigger(for: schedule)]
         }
@@ -77,6 +80,9 @@ actor NotificationManager {
             dateComponents.month = 3
             dateComponents.day = 1
             dateComponents.hour = 9
+        case .custom:
+            // No default date for custom schedules
+            dateComponents.day = nil
         }
 
         return UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)

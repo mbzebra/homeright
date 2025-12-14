@@ -7,11 +7,33 @@ import UserNotifications
 final class TaskStore: ObservableObject {
     @Published private(set) var groupedTasks: [Schedule: [Task]] = [:]
     @Published var selectedSchedule: Schedule? = nil
-    @Published var selectedYear: Int = 2024
+    @Published var selectedYear: Int = 2024 {
+        didSet { saveToCloud() }
+    }
     @Published private var progress: [String: TaskProgress] = [:]
+    @Published private(set) var customTasks: [Int: [Task]] = [:]
+    private let kvStore = NSUbiquitousKeyValueStore.default
+    private let cloudProgressKey = "taskProgress"
+    private let cloudSelectedYearKey = "selectedYear"
+    private let cloudCustomTasksKey = "customTasks"
+    private struct CustomTaskRecord: Codable {
+        let month: Int
+        let task: Task
+    }
 
     init() {
+        kvStore.synchronize()
+        loadFromCloud()
         regroupTasks()
+        NotificationCenter.default.addObserver(
+            forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
+            object: kvStore,
+            queue: .main
+        ) { [weak self] _ in
+            _Concurrency.Task { @MainActor in
+                self?.loadFromCloud()
+            }
+        }
     }
 
     func regroupTasks() {
@@ -29,6 +51,7 @@ final class TaskStore: ObservableObject {
         var current = progress[key] ?? TaskProgress()
         current.status = status
         progress[key] = current
+        saveToCloud()
     }
 
     func updateCost(for task: Task, cost: Decimal?, year: Int? = nil, month: Int? = nil) {
@@ -37,6 +60,7 @@ final class TaskStore: ObservableObject {
         var current = progress[key] ?? TaskProgress()
         current.cost = cost
         progress[key] = current
+        saveToCloud()
     }
 
     func updateNote(for task: Task, note: String, year: Int? = nil, month: Int? = nil) {
@@ -45,6 +69,7 @@ final class TaskStore: ObservableObject {
         var current = progress[key] ?? TaskProgress()
         current.note = note
         progress[key] = current
+        saveToCloud()
     }
 
     func refreshNotifications() async {
@@ -66,7 +91,9 @@ final class TaskStore: ObservableObject {
     }
 
     func tasks(in month: Int) -> [Task] {
-        ChecklistData.tasks.filter { schedule($0.schedule, matches: month) }
+        let base = ChecklistData.tasks.filter { schedule($0.schedule, matches: month) }
+        let custom = customTasks[month] ?? []
+        return base + custom
     }
 
     func isMonthComplete(_ month: Int, year: Int? = nil) -> Bool {
@@ -142,6 +169,61 @@ final class TaskStore: ObservableObject {
             return month == 12
         case .seasonal:
             return month == 3
+        case .custom:
+            return false
         }
+    }
+
+    private func saveToCloud() {
+        do {
+            let data = try JSONEncoder().encode(progress)
+            kvStore.set(data, forKey: cloudProgressKey)
+        } catch {
+            print("Failed to encode progress for iCloud: \(error)")
+        }
+        do {
+            let records = customTasks.flatMap { month, tasks in
+                tasks.map { CustomTaskRecord(month: month, task: $0) }
+            }
+            let data = try JSONEncoder().encode(records)
+            kvStore.set(data, forKey: cloudCustomTasksKey)
+        } catch {
+            print("Failed to encode custom tasks for iCloud: \(error)")
+        }
+        kvStore.set(selectedYear, forKey: cloudSelectedYearKey)
+        kvStore.synchronize()
+    }
+
+    private func loadFromCloud() {
+        if let storedData = kvStore.data(forKey: cloudProgressKey) {
+            do {
+                let decoded = try JSONDecoder().decode([String: TaskProgress].self, from: storedData)
+                progress = decoded
+            } catch {
+                print("Failed to decode progress from iCloud: \(error)")
+            }
+        }
+        if let customData = kvStore.data(forKey: cloudCustomTasksKey) {
+            do {
+                let records = try JSONDecoder().decode([CustomTaskRecord].self, from: customData)
+                var dict: [Int: [Task]] = [:]
+                for record in records {
+                    dict[record.month, default: []].append(record.task)
+                }
+                customTasks = dict
+            } catch {
+                print("Failed to decode custom tasks from iCloud: \(error)")
+            }
+        }
+        let cloudYear = kvStore.longLong(forKey: cloudSelectedYearKey)
+        if cloudYear != 0 {
+            selectedYear = Int(cloudYear)
+        }
+    }
+
+    func addCustomTask(title: String, detail: String, month: Int) {
+        let newTask = Task(id: UUID(), title: title, detail: detail, schedule: .custom)
+        customTasks[month, default: []].append(newTask)
+        saveToCloud()
     }
 }

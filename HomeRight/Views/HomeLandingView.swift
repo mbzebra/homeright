@@ -81,8 +81,14 @@ struct HomeLandingView: View {
                         Text("Needs attention")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(.secondary)
-                        ForEach(attentionTasks, id: \.id) { task in
+                        ForEach(attentionPreview, id: \.id) { task in
                             taskRow(task)
+                        }
+                        if attentionTasks.count > attentionPreview.count {
+                            NavigationLink(destination: TaskListView().environmentObject(taskStore)) {
+                                moreIndicator(count: attentionTasks.count - attentionPreview.count)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
@@ -92,8 +98,14 @@ struct HomeLandingView: View {
                         Text("Upcoming")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(.secondary)
-                        ForEach(upcomingTasks, id: \.id) { task in
-                            taskRow(task)
+                        ForEach(upcomingPreview, id: \.task.id) { item in
+                            taskRow(item.task, month: item.month)
+                        }
+                        if upcomingTasks.count > upcomingPreview.count {
+                            NavigationLink(destination: TaskListView().environmentObject(taskStore)) {
+                                moreIndicator(count: upcomingTasks.count - upcomingPreview.count)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
@@ -103,8 +115,14 @@ struct HomeLandingView: View {
                         Text("Recently completed")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(.secondary)
-                        ForEach(recentlyCompleted, id: \.id) { task in
+                        ForEach(recentlyCompletedPreview, id: \.id) { task in
                             taskRow(task, muted: true)
+                        }
+                        if recentlyCompleted.count > recentlyCompletedPreview.count {
+                            NavigationLink(destination: TaskListView().environmentObject(taskStore)) {
+                                moreIndicator(count: recentlyCompleted.count - recentlyCompletedPreview.count)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
@@ -112,11 +130,11 @@ struct HomeLandingView: View {
         }
     }
 
-    private func taskRow(_ task: Task, muted: Bool = false) -> some View {
+    private func taskRow(_ task: Task, month: Int? = nil, muted: Bool = false) -> some View {
         NavigationLink(destination: TaskDetailView(task: task, month: nil).environmentObject(taskStore)) {
             HStack(spacing: 12) {
-                Image(systemName: statusIcon(for: task))
-                    .foregroundStyle(statusColor(for: task))
+                Image(systemName: statusIcon(for: task, month: month))
+                    .foregroundStyle(statusColor(for: task, month: month))
                 VStack(alignment: .leading, spacing: 2) {
                     Text(task.title)
                         .font(.subheadline.weight(.semibold))
@@ -192,12 +210,34 @@ struct HomeLandingView: View {
         ChecklistData.tasks.filter { taskStore.progress(for: $0).status == .inProgress }
     }
 
-    private var upcomingTasks: [Task] {
-        ChecklistData.tasks.filter { taskStore.progress(for: $0).status == .notStarted }
+    private var attentionPreview: [Task] {
+        Array(attentionTasks.prefix(2))
+    }
+
+    private var upcomingTasks: [(task: Task, month: Int)] {
+        var seen = Set<UUID>()
+        var items: [(Task, Int)] = []
+        for month in monthsForUpcoming {
+            for task in taskStore.tasks(in: month) {
+                guard taskStore.progress(for: task, month: month).status == .notStarted else { continue }
+                if seen.insert(task.id).inserted {
+                    items.append((task, month))
+                }
+            }
+        }
+        return items
+    }
+
+    private var upcomingPreview: [(task: Task, month: Int)] {
+        Array(upcomingTasks.prefix(2))
     }
 
     private var recentlyCompleted: [Task] {
         ChecklistData.tasks.filter { taskStore.progress(for: $0).status == .complete }
+    }
+
+    private var recentlyCompletedPreview: [Task] {
+        Array(recentlyCompleted.prefix(2))
     }
 
     private var allTasksComplete: Bool {
@@ -224,20 +264,62 @@ struct HomeLandingView: View {
         }
     }
 
-    private func statusIcon(for task: Task) -> String {
-        switch taskStore.progress(for: task).status {
+    private func statusIcon(for task: Task, month: Int? = nil) -> String {
+        switch taskStore.progress(for: task, month: month).status {
         case .complete: return "checkmark.circle.fill"
         case .inProgress: return "clock.fill"
         case .notStarted: return "circle"
         }
     }
 
-    private func statusColor(for task: Task) -> Color {
-        switch taskStore.progress(for: task).status {
+    private func statusColor(for task: Task, month: Int? = nil) -> Color {
+        switch taskStore.progress(for: task, month: month).status {
         case .complete: return .green
         case .inProgress: return .orange
         case .notStarted: return .gray
         }
+    }
+
+    private func moreIndicator(count: Int) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "ellipsis.circle")
+                .foregroundStyle(.secondary)
+            Text("+\(count) more")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.secondary)
+            Spacer()
+            Image(systemName: "chevron.right")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.tertiary)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Color(.tertiarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+
+    private var monthsForUpcoming: [Int] {
+        var months = [currentMonth]
+        if shouldIncludeNextMonth { months.append(nextMonth) }
+        return months
+    }
+
+    private var currentMonth: Int {
+        Calendar.current.component(.month, from: Date())
+    }
+
+    private var nextMonth: Int {
+        let month = currentMonth
+        return month == 12 ? 1 : month + 1
+    }
+
+    private var shouldIncludeNextMonth: Bool {
+        let calendar = Calendar.current
+        let today = Date()
+        guard let range = calendar.range(of: .day, in: .month, for: today) else { return false }
+        let day = calendar.component(.day, from: today)
+        let remainingDays = range.count - day
+        return remainingDays <= 6
     }
 }
 

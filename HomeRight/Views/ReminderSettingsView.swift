@@ -11,7 +11,9 @@ struct ReminderSettingsView: View {
                     Label("Enable reminders", systemImage: "bell")
                 }
                 .accessibilityIdentifier("enableRemindersToggle")
-                .onChange(of: notificationsEnabled, perform: handleToggle)
+                .onChange(of: notificationsEnabled) { _, newValue in
+                    handleToggle(newValue)
+                }
                 if !statusMessage.isEmpty {
                     Text(statusMessage)
                         .font(.footnote)

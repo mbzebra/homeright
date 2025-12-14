@@ -16,7 +16,7 @@ actor NotificationManager {
 
     func registerReminders(for tasks: [Task]) async {
         let center = UNUserNotificationCenter.current()
-        await center.removeAllPendingNotificationRequests()
+        center.removeAllPendingNotificationRequests()
 
         for task in tasks {
             let content = UNMutableNotificationContent()

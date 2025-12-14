@@ -83,7 +83,7 @@ struct TaskDetailView: View {
                 }
             }
             .pickerStyle(.segmented)
-            .onChange(of: status) { newValue in
+            .onChange(of: status) { _, newValue in
                 taskStore.updateStatus(for: task, to: newValue, month: month)
             }
         }

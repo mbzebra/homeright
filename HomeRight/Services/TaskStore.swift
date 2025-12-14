@@ -26,14 +26,11 @@ final class TaskStore: ObservableObject {
         loadFromCloud()
         regroupTasks()
         NotificationCenter.default.addObserver(
-            forName: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
-            object: kvStore,
-            queue: .main
-        ) { [weak self] _ in
-            _Concurrency.Task { @MainActor in
-                self?.loadFromCloud()
-            }
-        }
+            self,
+            selector: #selector(handleCloudChange),
+            name: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
+            object: kvStore
+        )
     }
 
     func regroupTasks() {
@@ -225,5 +222,9 @@ final class TaskStore: ObservableObject {
         let newTask = Task(id: UUID(), title: title, detail: detail, schedule: .custom)
         customTasks[month, default: []].append(newTask)
         saveToCloud()
+    }
+
+    @objc private func handleCloudChange(_ notification: Notification) {
+        loadFromCloud()
     }
 }

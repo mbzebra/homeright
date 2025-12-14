@@ -278,7 +278,7 @@ struct TaskListView: View {
                 }
             }
         }
-        .onChange(of: editingStatus) { newValue in
+        .onChange(of: editingStatus) { _, newValue in
             if newValue == .complete {
                 DispatchQueue.main.async {
                     isCostFieldFocused = true
@@ -301,7 +301,7 @@ struct TaskListView: View {
                     TextField("Enter task name", text: $newTaskTitle)
                         .textInputAutocapitalization(.sentences)
                         .autocorrectionDisabled(true)
-                        .onChange(of: newTaskTitle) { newValue in
+                        .onChange(of: newTaskTitle) { _, newValue in
                             if newValue.count > 100 {
                                 newTaskTitle = String(newValue.prefix(100))
                             }
@@ -316,7 +316,7 @@ struct TaskListView: View {
                         .frame(minHeight: 120)
                         .textInputAutocapitalization(.sentences)
                         .autocorrectionDisabled(true)
-                        .onChange(of: newTaskDetail) { newValue in
+                        .onChange(of: newTaskDetail) { _, newValue in
                             if newValue.count > 200 {
                                 newTaskDetail = String(newValue.prefix(200))
                             }

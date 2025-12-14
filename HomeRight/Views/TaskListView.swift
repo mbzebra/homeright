@@ -11,6 +11,7 @@ struct TaskListView: View {
     @FocusState private var isCostFieldFocused: Bool
     @FocusState private var isNoteFocused: Bool
     private let currentMonth = Calendar.current.component(.month, from: Date())
+    @State private var expandedMonths: Set<Int> = []
 
     var body: some View {
         NavigationStack {
@@ -19,49 +20,72 @@ struct TaskListView: View {
                 ForEach(1...12, id: \.self) { month in
                     let tasks = taskStore.tasks(in: month)
                     if !tasks.isEmpty {
+                        let allComplete = tasks.allSatisfy { taskStore.progress(for: $0, month: month).status == .complete }
                         Section(header: sectionHeader(for: month, tasks: tasks, taskStore: taskStore)) {
-                            ForEach(tasks) { task in
-                                NavigationLink(destination: TaskDetailView(task: task, month: month)) {
-                                    TaskCard(
-                                        task: task,
-                                        status: taskStore.progress(for: task, month: month).status,
-                                        statusPill: statusPill(for: task, month: month),
-                                        schedulePill: schedulePill(for: task),
-                                        cost: taskStore.progress(for: task, month: month).cost,
-                                        onSwipeStatus: { _ in }
-                                    )
-                                    .contentShape(Rectangle())
+                            if allComplete && !expandedMonths.contains(month) {
+                                Button {
+                                    expandedMonths.insert(month)
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "checkmark.seal.fill")
+                                            .foregroundStyle(.green)
+                                        Text("All tasks completed for now")
+                                            .font(.subheadline.weight(.semibold))
+                                            .foregroundStyle(.secondary)
+                                        Spacer()
+                                        Image(systemName: "chevron.down")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    .padding(.vertical, 8)
                                 }
                                 .buttonStyle(.plain)
-                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                    Button {
-                                        taskStore.updateStatus(for: task, to: .notStarted, month: month)
-                                    } label: {
-                                        Image(systemName: "circle")
+                            } else {
+                                ForEach(tasks) { task in
+                                    NavigationLink(destination: TaskDetailView(task: task, month: month)) {
+                                        TaskCard(
+                                            task: task,
+                                            status: taskStore.progress(for: task, month: month).status,
+                                            statusPill: statusPill(for: task, month: month),
+                                            schedulePill: schedulePill(for: task),
+                                            cost: taskStore.progress(for: task, month: month).cost,
+                                            onSwipeStatus: { _ in }
+                                        )
+                                        .contentShape(Rectangle())
                                     }
-                                    .tint(.gray)
+                                    .buttonStyle(.plain)
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                        Button {
+                                            taskStore.updateStatus(for: task, to: .notStarted, month: month)
+                                        } label: {
+                                            Image(systemName: "circle")
+                                        }
+                                        .tint(.gray)
 
-                                    Button {
-                                        taskStore.updateStatus(for: task, to: .inProgress, month: month)
-                                    } label: {
-                                        Image(systemName: "clock.arrow.circlepath")
-                                    }
-                                    .tint(.orange)
+                                        Button {
+                                            taskStore.updateStatus(for: task, to: .inProgress, month: month)
+                                        } label: {
+                                            Image(systemName: "clock.arrow.circlepath")
+                                        }
+                                        .tint(.orange)
 
-                                    Button {
-                                        taskStore.updateStatus(for: task, to: .complete, month: month)
-                                    } label: {
-                                        Image(systemName: "checkmark.circle.fill")
+                                        Button {
+                                            taskStore.updateStatus(for: task, to: .complete, month: month)
+                                        } label: {
+                                            Image(systemName: "checkmark.circle.fill")
+                                        }
+                                        .tint(.green)
                                     }
-                                    .tint(.green)
                                 }
                             }
-                            }
-                            .id(month)
-                            .listRowBackground(Color(.systemGroupedBackground))
                         }
+                        .id(month)
+                        .textCase(nil)
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color(.systemGroupedBackground))
                     }
                 }
+            }
                 .listStyle(.insetGrouped)
                 .scrollContentBackground(.hidden)
                 .onAppear {
@@ -72,6 +96,9 @@ struct TaskListView: View {
             }
         }
         .sheet(item: $editingTask, content: statusSheet)
+        .safeAreaInset(edge: .top) {
+            Color.clear.frame(height: 12)
+        }
     }
 
     private var yearSelector: some View {
@@ -293,6 +320,7 @@ private func sectionHeader(for month: Int, tasks: [Task], taskStore: TaskStore) 
         Text("\(monthName) Tasks")
             .font(.title3.weight(.semibold))
             .foregroundStyle(titleColor)
+            .padding(.top, 4)
         HStack(spacing: 8) {
             HStack(spacing: 6) {
                 Image(systemName: "checkmark")
@@ -339,7 +367,7 @@ private struct TaskCard: View {
                 HStack {
                     Text(task.title)
                         .font(.headline)
-                        .opacity(status == .complete ? 0.8 : 1)
+                        .opacity(status == .complete ? 0.7 : 1)
                     Spacer()
                     if let cost {
                         Text(formatCost(cost))
@@ -352,12 +380,10 @@ private struct TaskCard: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
                 if status == .inProgress {
-                    HStack {
-                        Spacer()
-                        Text("Pending")
-                            .font(.caption2.weight(.semibold))
-                            .foregroundStyle(.orange)
-                    }
+                    Text("Due soon")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.orange)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
             Spacer()

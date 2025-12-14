@@ -8,10 +8,9 @@ struct HomeLandingView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     header
-                    hero
-                    taskPreview
-                    actionGrid
-                    recommended
+                    heroCard
+                    groupedTasks
+                    shortcutGrid
                 }
                 .padding(.horizontal)
                 .padding(.top, 8)
@@ -25,7 +24,7 @@ struct HomeLandingView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Home Maintenance")
                     .font(.title2.weight(.semibold))
-                Text("Welcome back")
+                Text("Good to see you")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -40,11 +39,11 @@ struct HomeLandingView: View {
         }
     }
 
-    private var hero: some View {
+    private var heroCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(greeting)
                 .font(.title3.weight(.semibold))
-            Text("\(remainingTasks) tasks to complete")
+            Text(urgencyMessage)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -62,10 +61,10 @@ struct HomeLandingView: View {
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
-    private var taskPreview: some View {
-        VStack(alignment: .leading, spacing: 8) {
+    private var groupedTasks: some View {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Tasks")
+                Text("This month's maintenance")
                     .font(.headline)
                 Spacer()
                 NavigationLink(destination: TaskListView().environmentObject(taskStore)) {
@@ -74,61 +73,85 @@ struct HomeLandingView: View {
                 }
             }
 
-            VStack(spacing: 8) {
-                ForEach(previewTasks, id: \.id) { task in
-                    NavigationLink(destination: TaskDetailView(task: task, month: nil)) {
-                        HStack {
-                            Image(systemName: statusIcon(for: task))
-                                .foregroundStyle(statusColor(for: task))
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(task.title)
-                                    .font(.subheadline.weight(.semibold))
-                                Text(task.detail)
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(1)
-                            }
-                            Spacer()
-                            Text(task.schedule.displayName)
-                                .font(.footnote.weight(.semibold))
-                                .foregroundStyle(.secondary)
+            if allTasksComplete {
+                completionRow
+            } else {
+                if !attentionTasks.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Needs attention")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                        ForEach(attentionTasks, id: \.id) { task in
+                            taskRow(task)
                         }
-                        .padding()
-                        .background(Color(.secondarySystemGroupedBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                     }
-                    .buttonStyle(.plain)
-                    .contentShape(Rectangle())
-                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        Button {
-                            taskStore.updateStatus(for: task, to: .notStarted)
-                        } label: {
-                            Image(systemName: "circle")
-                        }
-                        .tint(.gray)
+                }
 
-                        Button {
-                            taskStore.updateStatus(for: task, to: .inProgress)
-                        } label: {
-                            Image(systemName: "clock.arrow.circlepath")
+                if !upcomingTasks.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Upcoming")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                        ForEach(upcomingTasks, id: \.id) { task in
+                            taskRow(task)
                         }
-                        .tint(.orange)
+                    }
+                }
 
-                        Button {
-                            taskStore.updateStatus(for: task, to: .complete)
-                        } label: {
-                            Image(systemName: "checkmark.circle.fill")
+                if !recentlyCompleted.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Recently completed")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                        ForEach(recentlyCompleted, id: \.id) { task in
+                            taskRow(task, muted: true)
                         }
-                        .tint(.green)
                     }
                 }
             }
         }
     }
 
-    private var actionGrid: some View {
+    private func taskRow(_ task: Task, muted: Bool = false) -> some View {
+        NavigationLink(destination: TaskDetailView(task: task, month: nil).environmentObject(taskStore)) {
+            HStack(spacing: 12) {
+                Image(systemName: statusIcon(for: task))
+                    .foregroundStyle(statusColor(for: task))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(task.title)
+                        .font(.subheadline.weight(.semibold))
+                        .opacity(muted ? 0.7 : 1)
+                    Text(task.detail)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+                Spacer()
+            }
+            .padding()
+            .background(Color(.secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var completionRow: some View {
+        HStack {
+            Image(systemName: "checkmark.seal.fill")
+                .foregroundStyle(.green)
+            Text("All tasks completed for now")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+            Spacer()
+        }
+        .padding()
+        .background(Color(.secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private var shortcutGrid: some View {
         let items: [(String, String, AnyView)] = [
-            ("house.fill", "My Tasks", AnyView(TaskListView().environmentObject(taskStore))),
+            ("list.bullet.clipboard", "Home Tasks", AnyView(TaskListView().environmentObject(taskStore))),
             ("bell.badge", "Reminders", AnyView(ReminderSettingsView())),
             ("wrench.and.screwdriver", "Service History", AnyView(Text("Service History (coming soon)").padding())),
             ("person.2.wave.2", "Find a Pro", AnyView(Text("Find a Pro (coming soon)").padding()))
@@ -141,15 +164,15 @@ struct HomeLandingView: View {
                     NavigationLink(destination: item.2) {
                         VStack(spacing: 8) {
                             Image(systemName: item.0)
-                                .font(.title2)
-                                .foregroundStyle(.blue)
+                                .font(.title3)
+                                .foregroundStyle(.blue.opacity(0.6))
                                 .padding(10)
                                 .background(Color(.systemBackground))
                                 .clipShape(Circle())
                             Text(item.1)
                                 .font(.caption)
                                 .multilineTextAlignment(.center)
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(.secondary)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(8)
@@ -161,39 +184,24 @@ struct HomeLandingView: View {
         }
     }
 
-    private var recommended: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Recommended")
-                .font(.headline)
-            HStack(spacing: 12) {
-                Image(systemName: "fan.fill")
-                    .font(.system(size: 36))
-                    .foregroundStyle(.blue)
-                    .padding()
-                    .background(Color(.systemBlue).opacity(0.12))
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Schedule HVAC inspection")
-                        .font(.subheadline.weight(.semibold))
-                    Text("Spring is a good time")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-            }
-            .padding()
-            .background(Color(.secondarySystemGroupedBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        }
-    }
-
     private var previewTasks: [Task] {
         Array(ChecklistData.tasks.prefix(3))
     }
 
-    private var remainingTasks: Int {
-        let completed = ChecklistData.tasks.filter { taskStore.progress(for: $0).status == .complete }.count
-        return max(0, ChecklistData.tasks.count - completed)
+    private var attentionTasks: [Task] {
+        ChecklistData.tasks.filter { taskStore.progress(for: $0).status == .inProgress }
+    }
+
+    private var upcomingTasks: [Task] {
+        ChecklistData.tasks.filter { taskStore.progress(for: $0).status == .notStarted }
+    }
+
+    private var recentlyCompleted: [Task] {
+        ChecklistData.tasks.filter { taskStore.progress(for: $0).status == .complete }
+    }
+
+    private var allTasksComplete: Bool {
+        ChecklistData.tasks.allSatisfy { taskStore.progress(for: $0).status == .complete }
     }
 
     private var greeting: String {
@@ -202,6 +210,17 @@ struct HomeLandingView: View {
         case 5..<12: return "Good morning"
         case 12..<17: return "Good afternoon"
         default: return "Good evening"
+        }
+    }
+
+    private var urgencyMessage: String {
+        let inProgress = ChecklistData.tasks.filter { taskStore.progress(for: $0).status == .inProgress }
+        if inProgress.isEmpty {
+            return "Everything is on track."
+        } else if inProgress.count <= 3 {
+            return "\(inProgress.count) task\(inProgress.count == 1 ? "" : "s") need attention soon."
+        } else {
+            return "A few tasks need attention soon."
         }
     }
 
@@ -220,7 +239,6 @@ struct HomeLandingView: View {
         case .notStarted: return .gray
         }
     }
-
 }
 
 #Preview {

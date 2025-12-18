@@ -16,7 +16,7 @@ spec:
         - name: ghcr-pull
       containers:
         - name: homerightapi
-          image: ghcr.io/homeright/homerightapi:0.1.0
+          image: ghcr.io/mbzebra/homeright/homerightapi:0.1.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000

@@ -8,12 +8,13 @@ struct TaskListView: View {
     @State private var costText: String = ""
     @State private var noteText: String = ""
     @State private var editingStatus: TaskStatus = .notStarted
+    @State private var newTaskDate: Date = Date()
+    @State private var newTaskCostText: String = ""
     @FocusState private var isCostFieldFocused: Bool
     @FocusState private var isNoteFocused: Bool
     private let currentMonth = Calendar.current.component(.month, from: Date())
     @State private var expandedMonths: Set<Int> = []
-    @State private var showingNewTaskSheet = false
-    @State private var newTaskMonth: Int = 1
+    @State private var newTaskContext: NewTaskContext? = nil
     @State private var newTaskTitle: String = ""
     @State private var newTaskDetail: String = ""
 
@@ -25,11 +26,12 @@ struct TaskListView: View {
                     let tasks = taskStore.tasks(in: month)
                     if !tasks.isEmpty {
                         let allComplete = tasks.allSatisfy { taskStore.progress(for: $0, month: month).status == .complete }
-                        Section(header: sectionHeader(for: month, tasks: tasks, taskStore: taskStore, onAdd: {
-                            newTaskMonth = month
+                        Section(header: sectionHeader(for: month, tasks: tasks, onAdd: {
+                            newTaskContext = NewTaskContext(month: month)
+                            newTaskDate = defaultDate(for: month)
+                            newTaskCostText = ""
                             newTaskTitle = ""
                             newTaskDetail = ""
-                            showingNewTaskSheet = true
                         })) {
                             if allComplete && !expandedMonths.contains(month) {
                                 Button {
@@ -105,8 +107,8 @@ struct TaskListView: View {
             }
         }
         .sheet(item: $editingTask, content: statusSheet)
-        .sheet(isPresented: $showingNewTaskSheet) {
-            newTaskSheet
+        .sheet(item: $newTaskContext) { context in
+            newTaskSheet(month: context.month)
         }
         .safeAreaInset(edge: .top) {
             Color.clear.frame(height: 12)
@@ -175,6 +177,18 @@ struct TaskListView: View {
         formatter.numberStyle = .currency
         return formatter.string(from: number) ?? "$0"
     }
+    
+    private func defaultDate(for month: Int) -> Date {
+        var components = DateComponents()
+        components.year = taskStore.selectedYear
+        components.month = max(1, min(12, month))
+        components.day = 1
+        return Calendar.current.date(from: components) ?? Date()
+    }
+
+    private func decimal(from text: String) -> Decimal? {
+        Decimal(string: text.filter { "0123456789.".contains($0) })
+    }
 
     private func statusPill(for task: Task, month: Int) -> AnyView {
         let status = taskStore.progress(for: task, month: month).status
@@ -221,11 +235,22 @@ struct TaskListView: View {
         )
     }
 
-    private func monthName(from month: Int) -> String {
+    private func monthDisplayName(for month: Int, includeYear: Bool) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale.current
-        let monthName = formatter.monthSymbols[max(0, min(11, month - 1))]
-        return "\(monthName) \(taskStore.selectedYear)"
+        formatter.calendar = Calendar.current
+
+        let safeMonth = max(1, min(12, month))
+        var components = DateComponents()
+        components.year = taskStore.selectedYear
+        components.month = safeMonth
+
+        guard let date = formatter.calendar.date(from: components) else {
+            return includeYear ? "Month \(safeMonth) \(taskStore.selectedYear)" : "Month \(safeMonth)"
+        }
+
+        formatter.setLocalizedDateFormatFromTemplate(includeYear ? "LLLL yyyy" : "LLLL")
+        return formatter.string(from: date)
     }
 
     private func statusSheet(for task: Task) -> some View {
@@ -289,12 +314,23 @@ struct TaskListView: View {
         }
     }
 
-    private var newTaskSheet: some View {
+    private func newTaskSheet(month: Int) -> some View {
         NavigationStack {
             Form {
                 Section("Month") {
-                    Text(monthName(from: newTaskMonth))
+                    Text(monthDisplayName(for: month, includeYear: true))
                         .font(.subheadline.weight(.semibold))
+                }
+
+                Section("Date") {
+                    DatePicker("Select date", selection: $newTaskDate, displayedComponents: .date)
+                        .datePickerStyle(.compact)
+                }
+
+                Section("Cost") {
+                    TextField("Enter amount", text: $newTaskCostText)
+                        .keyboardType(.decimalPad)
+                        .textContentType(.none)
                 }
 
                 Section("Task name") {
@@ -311,7 +347,7 @@ struct TaskListView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                Section("Details") {
+                Section("Comments") {
                     TextEditor(text: $newTaskDetail)
                         .frame(minHeight: 120)
                         .textInputAutocapitalization(.sentences)
@@ -329,18 +365,73 @@ struct TaskListView: View {
             .navigationTitle("Add Task")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { showingNewTaskSheet = false }
+                    Button("Cancel") { newTaskContext = nil }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         let title = newTaskTitle.trimmingCharacters(in: .whitespacesAndNewlines)
                         let detail = newTaskDetail.trimmingCharacters(in: .whitespacesAndNewlines)
                         guard !title.isEmpty else { return }
-                        taskStore.addCustomTask(title: title, detail: detail, month: newTaskMonth)
-                        showingNewTaskSheet = false
+                        let cost = decimal(from: newTaskCostText)
+                        taskStore.addCustomTask(title: title, detail: detail, month: month, cost: cost, note: detail, date: newTaskDate)
+                        newTaskContext = nil
                     }
                     .disabled(newTaskTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
+            }
+        }
+    }
+
+@ViewBuilder
+private func sectionHeader(for month: Int, tasks: [Task], onAdd: @escaping () -> Void) -> some View {
+        let monthName = monthDisplayName(for: month, includeYear: false)
+        let total = tasks.count
+        let completed = tasks.filter { taskStore.progress(for: $0, month: month).status == .complete }.count
+        let monthCost = tasks
+            .compactMap { taskStore.progress(for: $0, month: month).cost }
+            .reduce(Decimal(0), +)
+        let allDone = total > 0 && completed == total
+        let titleColor: Color = allDone ? .green : .primary
+        let badgeBackground = Color(.tertiarySystemFill)
+
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("\(monthName) Tasks")
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(titleColor)
+                        .padding(.top, 4)
+                    HStack(spacing: 8) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "checkmark")
+                                .font(.caption.bold())
+                            Text("\(completed) completed of \(total)")
+                                .font(.caption.weight(.semibold))
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(badgeBackground)
+                        .clipShape(Capsule())
+
+                        if monthCost > 0 {
+                            Text("Total: \(formattedCost(monthCost))")
+                                .font(.caption.weight(.semibold))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(badgeBackground)
+                                .clipShape(Capsule())
+                        }
+                    }
+                }
+                Spacer()
+                Button(action: onAdd) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(.blue)
+                        .padding(.top, 4)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Add task for \(monthName)")
             }
         }
     }
@@ -373,66 +464,9 @@ private struct MetricPill: View {
     }
 }
 
-private func sectionHeader(for month: Int, tasks: [Task], taskStore: TaskStore, onAdd: @escaping () -> Void) -> some View {
-    let formatter = DateFormatter()
-    formatter.locale = Locale.current
-    let monthName = formatter.monthSymbols[max(0, min(11, month - 1))]
-    let total = tasks.count
-    let completed = tasks.filter { taskStore.progress(for: $0, month: month).status == .complete }.count
-    let monthCost = tasks
-        .compactMap { taskStore.progress(for: $0, month: month).cost }
-        .reduce(Decimal(0), +)
-    let allDone = total > 0 && completed == total
-    let titleColor: Color = allDone ? .green : .primary
-    let badgeBackground = Color(.tertiarySystemFill)
-
-    return VStack(alignment: .leading, spacing: 8) {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("\(monthName) Tasks")
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(titleColor)
-                    .padding(.top, 4)
-                HStack(spacing: 8) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "checkmark")
-                            .font(.caption.bold())
-                        Text("\(completed) completed of \(total)")
-                            .font(.caption.weight(.semibold))
-                    }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(badgeBackground)
-                    .clipShape(Capsule())
-
-                    if monthCost > 0 {
-                        Text("Total: \(formattedCost(monthCost))")
-                            .font(.caption.weight(.semibold))
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(badgeBackground)
-                            .clipShape(Capsule())
-                    }
-                }
-            }
-            Spacer()
-            Button(action: onAdd) {
-                Image(systemName: "plus.circle.fill")
-                    .font(.title2)
-                    .foregroundStyle(.blue)
-                    .padding(.top, 4)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Add task for \(monthName)")
-        }
-    }
-}
-
-private func formattedCost(_ cost: Decimal) -> String {
-    let number = NSDecimalNumber(decimal: cost)
-    let formatter = NumberFormatter()
-    formatter.numberStyle = .currency
-    return formatter.string(from: number) ?? "$0"
+private struct NewTaskContext: Identifiable {
+    let id = UUID()
+    let month: Int
 }
 
 private struct TaskCard: View {

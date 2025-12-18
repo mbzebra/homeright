@@ -1,0 +1,25 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: homeright_mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: homeright_api
+    depends_on:
+      - mongo
+    environment:
+      MONGODB_URI: mongodb://mongo:27017
+      MONGODB_DB: homeright
+      APP_NAME: HomeRightAPI
+    ports:
+      - "8000:8000"
+
+volumes:
+  mongo_data:

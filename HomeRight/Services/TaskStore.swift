@@ -60,6 +60,15 @@ final class TaskStore: ObservableObject {
         saveToCloud()
     }
 
+    func updateDate(for task: Task, date: Date?, year: Int? = nil, month: Int? = nil) {
+        let year = year ?? selectedYear
+        let key = progressKey(for: task, year: year, month: month)
+        var current = progress[key] ?? TaskProgress()
+        current.date = date
+        progress[key] = current
+        saveToCloud()
+    }
+
     func updateNote(for task: Task, note: String, year: Int? = nil, month: Int? = nil) {
         let year = year ?? selectedYear
         let key = progressKey(for: task, year: year, month: month)
@@ -218,9 +227,15 @@ final class TaskStore: ObservableObject {
         }
     }
 
-    func addCustomTask(title: String, detail: String, month: Int) {
+    func addCustomTask(title: String, detail: String, month: Int, cost: Decimal? = nil, note: String = "", date: Date? = nil) {
         let newTask = Task(id: UUID(), title: title, detail: detail, schedule: .custom)
         customTasks[month, default: []].append(newTask)
+        let key = progressKey(for: newTask, year: selectedYear, month: month)
+        var current = progress[key] ?? TaskProgress()
+        current.cost = cost
+        current.note = note
+        current.date = date
+        progress[key] = current
         saveToCloud()
     }
 

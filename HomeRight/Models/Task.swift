@@ -19,6 +19,7 @@ struct TaskProgress: Codable, Hashable {
     var status: TaskStatus = .notStarted
     var cost: Decimal? = nil
     var note: String = ""
+    var date: Date? = nil
 }
 
 enum Schedule: String, CaseIterable, Codable, Hashable {

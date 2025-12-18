@@ -10,6 +10,7 @@ struct TaskDetailView: View {
     @State private var status: TaskStatus = .notStarted
     @State private var costText: String = ""
     @State private var noteText: String = ""
+    @State private var selectedDate: Date = Date()
     @FocusState private var isCostFieldFocused: Bool
     @FocusState private var isNoteFocused: Bool
 
@@ -92,9 +93,11 @@ struct TaskDetailView: View {
     private var costSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Cost")
+                Text("Date & Cost")
                     .font(.headline)
             }
+            DatePicker("Date", selection: $selectedDate, displayedComponents: .date)
+                .datePickerStyle(.compact)
             TextField("Enter amount (e.g. 125.00)", text: $costText)
                 .keyboardType(.decimalPad)
                 .textContentType(.none)
@@ -128,6 +131,7 @@ struct TaskDetailView: View {
             costText = ""
         }
         noteText = progress.note
+        selectedDate = progress.date ?? defaultDate(for: month)
     }
 
     private func decimal(from text: String) -> Decimal? {
@@ -137,6 +141,7 @@ struct TaskDetailView: View {
     private func persistEdits() {
         taskStore.updateStatus(for: task, to: status, month: month)
         taskStore.updateCost(for: task, cost: decimal(from: costText), month: month)
+        taskStore.updateDate(for: task, date: selectedDate, month: month)
         taskStore.updateNote(for: task, note: noteText, month: month)
     }
 
@@ -144,6 +149,14 @@ struct TaskDetailView: View {
         isCostFieldFocused = false
         isNoteFocused = false
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+
+    private func defaultDate(for month: Int?) -> Date {
+        var components = DateComponents()
+        components.year = taskStore.selectedYear
+        components.month = month ?? Calendar.current.component(.month, from: Date())
+        components.day = 1
+        return Calendar.current.date(from: components) ?? Date()
     }
 }
 

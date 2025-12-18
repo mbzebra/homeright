@@ -3,6 +3,7 @@ kind: Ingress
 metadata:
   name: homeright-api
 spec:
+  ingressClassName: nginx
   rules:
     - http:
         paths:

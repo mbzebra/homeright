@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homeright-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: homeright-api
+  template:
+    metadata:
+      labels:
+        app: homeright-api
+    spec:
+      containers:
+        - name: api
+          image: homeright-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: APP_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: homeright-api-config
+                  key: APP_NAME
+            - name: MONGODB_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: homeright-api-config
+                  key: MONGODB_DB
+            - name: MONGO_USER
+              valueFrom:
+                secretKeyRef:
+                  name: homeright-secrets
+                  key: MONGO_INITDB_ROOT_USERNAME
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homeright-secrets
+                  key: MONGO_INITDB_ROOT_PASSWORD
+            - name: MONGODB_URI
+              value: mongodb://$(MONGO_USER):$(MONGO_PASSWORD)@mongo:27017/?authSource=admin
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+

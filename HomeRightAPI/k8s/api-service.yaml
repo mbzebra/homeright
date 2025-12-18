@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: homeright-api
+spec:
+  selector:
+    app: homeright-api
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+

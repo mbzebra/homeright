@@ -134,8 +134,8 @@ async def upsert_progress_by_key(payload: ProgressCreate, db: AsyncIOMotorDataba
 @router.patch("/{progress_id}", response_model=ProgressOut)
 async def update_progress(
     progress_id: str,
-    owner_id: str = Query(min_length=1),
     payload: ProgressUpdate,
+    owner_id: str = Query(min_length=1),
     db: AsyncIOMotorDatabase = Depends(get_db),
 ):
     if not ObjectId.is_valid(progress_id):
@@ -163,8 +163,8 @@ async def update_progress(
 @router.put("/{progress_id}", response_model=ProgressOut)
 async def replace_progress(
     progress_id: str,
-    owner_id: str = Query(min_length=1),
     payload: ProgressCreate,
+    owner_id: str = Query(min_length=1),
     db: AsyncIOMotorDatabase = Depends(get_db),
 ):
     """

@@ -99,8 +99,8 @@ async def get_task(task_id: str, owner_id: str = Query(min_length=1), db: AsyncI
 @router.put("/{task_id}", response_model=TaskOut)
 async def replace_task(
     task_id: str,
-    owner_id: str = Query(min_length=1),
     payload: TaskCreate,
+    owner_id: str = Query(min_length=1),
     db: AsyncIOMotorDatabase = Depends(get_db),
 ):
     if payload.ensure_task_id() != task_id:
@@ -134,8 +134,8 @@ async def replace_task(
 @router.patch("/{task_id}", response_model=TaskOut)
 async def update_task(
     task_id: str,
-    owner_id: str = Query(min_length=1),
     payload: TaskUpdate,
+    owner_id: str = Query(min_length=1),
     db: AsyncIOMotorDatabase = Depends(get_db),
 ):
     doc = await db["tasks"].find_one({"owner_id": owner_id.strip(), "task_id": task_id})

@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: homeright
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secret.yaml
+  - mongo-service.yaml
+  - mongo-statefulset.yaml
+  - api-service.yaml
+  - api-deployment.yaml
+
+# Optional: add ingress.yaml if you want ingress-based routing.
+#  - ingress.yaml
+

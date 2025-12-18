@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homeright-api-config
+data:
+  APP_NAME: HomeRightAPI
+  MONGODB_DB: homeright
+

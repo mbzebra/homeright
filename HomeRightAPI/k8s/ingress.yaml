@@ -1,3 +1,7 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: homeright-api
 spec:
   ingressClassName: nginx
   tls:
@@ -5,8 +9,7 @@ spec:
         - api.homeright.home
       secretName: homeright-api-tls
   rules:
-    - host: api.homeright.home
-      http:
+    - http:
         paths:
           - path: /
             pathType: Prefix
@@ -15,3 +18,4 @@ spec:
                 name: homeright-api
                 port:
                   number: 8000
+

@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: homeright-api-cert
+  namespace: homeright
+spec:
+  secretName: homeright-api-tls
+  issuerRef:
+    name: homelab-ca   # <-- your ClusterIssuer name (change if different)
+    kind: ClusterIssuer
+  dnsNames:
+    - api.homeright.home

@@ -12,6 +12,7 @@ resources:
   - api-service.yaml
   - api-deployment.yaml
   - ingress.yaml
+  - api-cert.yaml
 
 # Optional: add ingress.yaml if you want ingress-based routing.
 #  - ingress.yaml

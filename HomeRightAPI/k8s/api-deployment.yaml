@@ -12,9 +12,11 @@ spec:
       labels:
         app: homeright-api
     spec:
+      imagePullSecrets:
+        - name: ghcr-pull
       containers:
-        - name: api
-          image: homeright-api:latest
+        - name: homerightapi
+          image: ghcr.io/homeright/homerightapi:0.1.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000

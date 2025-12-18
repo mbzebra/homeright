@@ -11,6 +11,7 @@ resources:
   - mongo-statefulset.yaml
   - api-service.yaml
   - api-deployment.yaml
+  - ingress.yaml
 
 # Optional: add ingress.yaml if you want ingress-based routing.
 #  - ingress.yaml

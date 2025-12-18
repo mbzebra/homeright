@@ -9,7 +9,8 @@ spec:
         - api.homeright.home
       secretName: homeright-api-tls
   rules:
-    - http:
+    - host: api.homeright.home
+      http:
         paths:
           - path: /
             pathType: Prefix
